@@ -54,7 +54,11 @@ Este objeto JSON deve ter duas chaves de nível superior: "personagens" e "cenas
 
 CRÍTICO PARA CONSISTÊNCIA: Ao escrever o "promptImagem" e "promptVideo" (ambos em INGLÊS), você DEVE OBRIGATORIAMENTE usar as descrições exatas da chave "personagens" sempre que um personagem aparecer. Por exemplo: 'A medium shot of (a man with short black hair, a scar over his left eye, wearing a worn leather jacket) looking at the city skyline.'
 
-O prompt de vídeo DEVE começar com um ângulo de câmera. IMPORTANTE para o áudio: a música de fundo deve ser sutil e o seu volume deve ser baixo (aproximadamente 20%) para que os diálogos sejam sempre claros. Se houver falas, inclua-as no final do prompt de vídeo no formato 'NOME DO PERSONAGEM: fale em português brasileiro: "A fala aqui entre aspas".'`;
+O prompt de vídeo DEVE começar com um ângulo de câmera. IMPORTANTE para o áudio: a música de fundo deve ser sutil e o seu volume deve ser baixo (aproximadamente 20%) para que os diálogos sejam sempre claros. Se houver falas, inclua-as no final do prompt de vídeo no formato 'NOME DO PERSONAGEM: fale em português brasileiro: "A fala aqui entre aspas".'
+
+REGRAS ESPECIAIS PARA ROTEIROS DE VÍDEO (10 minutos):
+1.  É ESSENCIAL que o roteiro contenha diálogos e falas consistentes do início ao fim para que a história seja clara para o espectador. Não crie cenas longas sem diálogo.
+2.  As CENAS FINAIS (últimas 2 ou 3) DEVEM OBRIGATORIAMENTE incluir uma chamada para ação (call to action). Um personagem ou narrador deve pedir ao público para se inscrever no canal, deixar um 'like' e ativar as notificações para não perder os próximos vídeos. Integre isso de forma natural à narrativa, se possível.`;
     
     let userQuery: string;
     if (duration === '10 minutos de vídeo') {
