@@ -1,5 +1,6 @@
 import React from 'react';
 import { ScriptTable } from './ScriptTable';
+import { SeoSection } from './SeoSection';
 import type { ScriptData } from '../types';
 
 interface OutputSectionProps {
@@ -36,7 +37,10 @@ export const OutputSection: React.FC<OutputSectionProps> = ({ isGenerating, erro
             </div>
 
             {scriptData && scriptData.cenas ? (
-                <ScriptTable data={scriptData.cenas} />
+                <>
+                    <ScriptTable data={scriptData.cenas} />
+                    {scriptData.seo && <SeoSection seoData={scriptData.seo} />}
+                </>
             ) : isGenerating ? (
                 <div className="w-full h-64 flex items-center justify-center bg-purple-900/50 border-2 border-dashed border-purple-700 rounded-xl">
                     <div className="animate-pulse text-purple-300">Escrevendo seu roteiro...</div>

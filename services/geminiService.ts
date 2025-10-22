@@ -38,33 +38,48 @@ const generateImage = async (storyIdea: string, visualStyle: string): Promise<st
     }
 };
 
-const generateScript = async (storyIdea: string, visualStyle: string, duration: string): Promise<ScriptData> => {
+const generateScript = async (
+    storyIdea: string,
+    visualStyle: string,
+    duration: string,
+    titleInstruction: string,
+    descriptionInstruction: string,
+    thumbnailInstruction: string
+): Promise<ScriptData> => {
     const ai = getAiClient();
-    const systemInstruction = `Você é um roteirista mestre. Sua tarefa é gerar um roteiro de filme estruturado. A saída DEVE ser um único objeto JSON, e NADA MAIS.
-Este objeto JSON deve ter duas chaves de nível superior: "personagens" e "cenas".
+    const systemInstruction = `Você é um roteirista mestre e especialista em marketing para YouTube. Sua tarefa é gerar um pacote completo de conteúdo. A saída DEVE ser um único objeto JSON, e NADA MAIS.
+Este objeto JSON deve ter três chaves de nível superior: "personagens", "cenas" e "seo".
 
-1.  A chave "personagens" deve ser um array de objetos. Cada objeto representa um personagem principal e deve conter duas chaves:
-    *   "nome" (string): O nome do personagem.
-    *   "descricao" (string): Uma descrição física MUITO detalhada do personagem EM INGLÊS para garantir a consistência visual. Inclua rosto, cabelo, roupas, tipo de corpo, etc.
+1.  "personagens": Um array de objetos, cada um com "nome" (string) e "descricao" (string MUITO detalhada EM INGLÊS para consistência visual).
 
-2.  A chave "cenas" deve ser um array de objetos, onde cada objeto representa uma CENA e deve ter as chaves "cena" e "falas".
-    *   Adicionalmente, cada objeto de cena DEVE conter uma chave "detalhes", que é um array de objetos.
-    *   CADA objeto dentro de "detalhes" representa uma ÚNICA FRASE ou AÇÃO da história da cena.
-    *   Cada um desses objetos de detalhe DEVE ter EXATAMENTE as seguintes chaves: "descricaoHistoria", "promptImagem", e "promptVideo".
+2.  "cenas": Um array de objetos, onde cada objeto de cena tem "cena" (string), "falas" (string), e "detalhes" (um array de objetos).
+    *   IMPORTANTE: As "falas" de cada cena DEVEM ser concisas, cabendo confortavelmente em 5 segundos de tempo de tela para manter um ritmo rápido e dinâmico.
+    *   Cada objeto em "detalhes" representa uma ÚNICA AÇÃO e deve ter "descricaoHistoria" (string), "promptImagem" (string EM INGLÊS), e "promptVideo" (string EM INGLÊS).
+    *   CRÍTICO: Os prompts de imagem e vídeo DEVEM usar as descrições exatas dos personagens. Ex: 'A medium shot of (a man with short black hair, wearing a worn leather jacket)...'
+    *   O prompt de vídeo DEVE começar com um ângulo de câmera e incluir diálogos no formato 'NOME DO PERSONAGEM: fale em português brasileiro: "A fala aqui."'.
 
-CRÍTICO PARA CONSISTÊNCIA: Ao escrever o "promptImagem" e "promptVideo" (ambos em INGLÊS), você DEVE OBRIGATORIAMENTE usar as descrições exatas da chave "personagens" sempre que um personagem aparecer. Por exemplo: 'A medium shot of (a man with short black hair, a scar over his left eye, wearing a worn leather jacket) looking at the city skyline.'
-
-O prompt de vídeo DEVE começar com um ângulo de câmera. IMPORTANTE para o áudio: a música de fundo deve ser sutil e o seu volume deve ser baixo (aproximadamente 20%) para que os diálogos sejam sempre claros. Se houver falas, inclua-as no final do prompt de vídeo no formato 'NOME DO PERSONAGEM: fale em português brasileiro: "A fala aqui entre aspas".'
+3.  "seo": Um objeto contendo material de marketing para o YouTube, baseado na história.
+    *   "titulos" (array de 5 strings): Crie 5 títulos de vídeo impactantes e que gerem curiosidade.
+    *   "descricao" (string): Escreva uma descrição de vídeo bem elaborada. Comece com um resumo da história, depois adicione um parágrafo genérico incentivando a interação e finalize com uma Chamada Para Ação (CTA) clara, pedindo para se inscrever, curtir e comentar.
+    *   "promptsThumbnail" (array de 3 strings): Crie 3 prompts de imagem detalhados (EM INGLÊS) para gerar uma thumbnail de vídeo clicável. Pense em contraste, emoção e clareza.
+    *   "tags" (array de strings): Gere uma lista de tags de SEO relevantes para o YouTube, incluindo temas gerais e específicos da história.
 
 REGRAS ESPECIAIS PARA ROTEIROS DE VÍDEO (10 minutos):
-1.  É ESSENCIAL que o roteiro contenha diálogos e falas consistentes do início ao fim para que a história seja clara para o espectador. Não crie cenas longas sem diálogo.
-2.  As CENAS FINAIS (últimas 2 ou 3) DEVEM OBRIGATORIAMENTE incluir uma chamada para ação (call to action). Um personagem ou narrador deve pedir ao público para se inscrever no canal, deixar um 'like' e ativar as notificações para não perder os próximos vídeos. Integre isso de forma natural à narrativa, se possível.`;
+1.  É ESSENCIAL que o roteiro contenha diálogos e falas consistentes do início ao fim.
+2.  As CENAS FINAIS (últimas 2 ou 3) DEVEM OBRIGATORIAMENTE incluir uma chamada para ação (call to action), pedindo ao público para se inscrever, deixar 'like' e ativar notificações.`;
     
     let userQuery: string;
+    const baseQuery = `Premissa da história: ${storyIdea}. Estilo visual: ${visualStyle}. Duração: ${duration}.`;
+    const seoInstructions = `
+Instruções para Títulos: ${titleInstruction || 'Padrão: gerar curiosidade e ser impactante.'}
+Instruções para Descrição: ${descriptionInstruction || 'Padrão: resumir a história e adicionar CTA.'}
+Instruções para Thumbnail: ${thumbnailInstruction || 'Padrão: cores vibrantes, mostrar emoção.'}
+`;
+
     if (duration === '10 minutos de vídeo') {
-        userQuery = `Gere um roteiro com exatamente 100 cenas para um vídeo de 10 minutos no estilo ${visualStyle}, baseado na seguinte premissa: ${storyIdea}.`;
+        userQuery = `Gere um roteiro com exatamente 100 cenas para um vídeo de 10 minutos e o conteúdo SEO correspondente. ${baseQuery} ${seoInstructions}`;
     } else {
-        userQuery = `Gere um roteiro de duração ${duration} para um filme no estilo ${visualStyle}, baseado na seguinte premissa: ${storyIdea}.`;
+        userQuery = `Gere um roteiro de filme e o conteúdo SEO correspondente. ${baseQuery} ${seoInstructions}`;
     }
 
     const responseSchema = {
@@ -103,14 +118,24 @@ REGRAS ESPECIAIS PARA ROTEIROS DE VÍDEO (10 minutos):
               },
               required: ["cena", "falas", "detalhes"]
             }
+          },
+          seo: {
+            type: Type.OBJECT,
+            properties: {
+              titulos: { type: Type.ARRAY, items: { type: Type.STRING } },
+              descricao: { type: Type.STRING },
+              promptsThumbnail: { type: Type.ARRAY, items: { type: Type.STRING } },
+              tags: { type: Type.ARRAY, items: { type: Type.STRING } }
+            },
+            required: ["titulos", "descricao", "promptsThumbnail", "tags"]
           }
         },
-        required: ["personagens", "cenas"]
+        required: ["personagens", "cenas", "seo"]
     };
     
     try {
         const response = await ai.models.generateContent({
-            model: "gemini-2.5-flash",
+            model: "gemini-2.5-pro",
             contents: userQuery,
             config: {
                 systemInstruction: systemInstruction,
@@ -130,10 +155,17 @@ REGRAS ESPECIAIS PARA ROTEIROS DE VÍDEO (10 minutos):
     }
 };
 
-export const generateScriptAndImage = async (storyIdea: string, visualStyle: string, duration: string) => {
+export const generateScriptAndImage = async (
+    storyIdea: string,
+    visualStyle: string,
+    duration: string,
+    titleInstruction: string,
+    descriptionInstruction: string,
+    thumbnailInstruction: string
+) => {
     const [imageResult, scriptResult] = await Promise.allSettled([
         generateImage(storyIdea, visualStyle),
-        generateScript(storyIdea, visualStyle, duration)
+        generateScript(storyIdea, visualStyle, duration, titleInstruction, descriptionInstruction, thumbnailInstruction)
     ]);
     return { imageResult, scriptResult };
 };

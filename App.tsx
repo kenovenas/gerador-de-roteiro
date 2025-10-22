@@ -13,6 +13,9 @@ const App: React.FC = () => {
     const [storyIdea, setStoryIdea] = useState('');
     const [visualStyle, setVisualStyle] = useState('Cinematográfico');
     const [duration, setDuration] = useState('Curta');
+    const [titleInstruction, setTitleInstruction] = useState('');
+    const [descriptionInstruction, setDescriptionInstruction] = useState('');
+    const [thumbnailInstruction, setThumbnailInstruction] = useState('');
     const [isGenerating, setIsGenerating] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [generatedImage, setGeneratedImage] = useState<string | null>(null);
@@ -57,6 +60,9 @@ const App: React.FC = () => {
         setStoryIdea('');
         setVisualStyle('Cinematográfico');
         setDuration('Curta');
+        setTitleInstruction('');
+        setDescriptionInstruction('');
+        setThumbnailInstruction('');
         setGeneratedImage(null);
         setScriptData(null);
         setError(null);
@@ -73,6 +79,9 @@ const App: React.FC = () => {
             setStoryIdea(selected.storyIdea);
             setVisualStyle(selected.visualStyle);
             setDuration(selected.duration);
+            setTitleInstruction(selected.titleInstruction);
+            setDescriptionInstruction(selected.descriptionInstruction);
+            setThumbnailInstruction(selected.thumbnailInstruction);
             setGeneratedImage(selected.generatedImage);
             setScriptData(selected.scriptData);
             setActiveSessionId(selected.id);
@@ -104,7 +113,14 @@ const App: React.FC = () => {
         setScriptData(null);
 
         try {
-            const results = await generateScriptAndImage(storyIdea, visualStyle, duration);
+            const results = await generateScriptAndImage(
+                storyIdea,
+                visualStyle,
+                duration,
+                titleInstruction,
+                descriptionInstruction,
+                thumbnailInstruction
+            );
             
             const newImage = results.imageResult.status === 'fulfilled' ? results.imageResult.value : null;
             const newScript = results.scriptResult.status === 'fulfilled' ? results.scriptResult.value : null;
@@ -130,10 +146,13 @@ const App: React.FC = () => {
                     storyIdea,
                     visualStyle,
                     duration,
+                    titleInstruction,
+                    descriptionInstruction,
+                    thumbnailInstruction,
                     scriptData: newScript,
                     generatedImage: newImage,
                  };
-                 setHistory(prev => [...prev, newHistoryItem]);
+                 setHistory(prev => [newHistoryItem, ...prev]);
                  setActiveSessionId(newHistoryItem.id);
             }
 
@@ -143,7 +162,7 @@ const App: React.FC = () => {
         } finally {
             setIsGenerating(false);
         }
-    }, [storyIdea, visualStyle, duration, hasApiKey, error]);
+    }, [storyIdea, visualStyle, duration, titleInstruction, descriptionInstruction, thumbnailInstruction, hasApiKey, error]);
 
     const handleExport = () => {
         if (scriptData && scriptData.cenas) {
@@ -172,6 +191,12 @@ const App: React.FC = () => {
                             setVisualStyle={setVisualStyle}
                             duration={duration}
                             setDuration={setDuration}
+                            titleInstruction={titleInstruction}
+                            setTitleInstruction={setTitleInstruction}
+                            descriptionInstruction={descriptionInstruction}
+                            setDescriptionInstruction={setDescriptionInstruction}
+                            thumbnailInstruction={thumbnailInstruction}
+                            setThumbnailInstruction={setThumbnailInstruction}
                             onGenerate={handleGenerate}
                             isGenerating={isGenerating}
                             isResultReady={!!scriptData}

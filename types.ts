@@ -15,9 +15,17 @@ export interface ScriptScene {
   detalhes: SceneDetail[];
 }
 
+export interface SeoData {
+  titulos: string[];
+  descricao: string;
+  promptsThumbnail: string[];
+  tags: string[];
+}
+
 export interface ScriptData {
   personagens: Character[];
   cenas: ScriptScene[];
+  seo: SeoData;
 }
 
 export interface HistoryItem {
@@ -26,6 +34,9 @@ export interface HistoryItem {
   storyIdea: string;
   visualStyle: string;
   duration: string;
+  titleInstruction: string;
+  descriptionInstruction: string;
+  thumbnailInstruction: string;
   scriptData: ScriptData | null;
   generatedImage: string | null;
 }
