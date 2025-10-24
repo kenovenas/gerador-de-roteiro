@@ -1,4 +1,3 @@
-
 import React from 'react';
 
 export const Header: React.FC = () => (
@@ -8,7 +7,7 @@ export const Header: React.FC = () => (
             Gerador de Roteiros com IA
         </h1>
         <p className="text-md sm:text-lg text-slate-400 max-w-2xl mx-auto">
-            Transforme sua ideia em um roteiro completo, pronto para produção.
+            Transforme passagens bíblicas em roteiros completos, prontos para produção.
         </p>
     </header>
 );

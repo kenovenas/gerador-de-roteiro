@@ -2,6 +2,8 @@ import React from 'react';
 import { Spinner } from './Spinner';
 
 interface InputSectionProps {
+    projectName: string;
+    setProjectName: (value: string) => void;
     storyIdea: string;
     setStoryIdea: (value: string) => void;
     visualStyle: string;
@@ -21,7 +23,7 @@ interface InputSectionProps {
 }
 
 export const InputSection: React.FC<InputSectionProps> = ({
-    storyIdea, setStoryIdea, visualStyle, setVisualStyle, duration, setDuration,
+    projectName, setProjectName, storyIdea, setStoryIdea, visualStyle, setVisualStyle, duration, setDuration,
     titleInstruction, setTitleInstruction, descriptionInstruction, setDescriptionInstruction,
     thumbnailInstruction, setThumbnailInstruction, onGenerate, isGenerating, isResultReady, onExport
 }) => {
@@ -31,13 +33,25 @@ export const InputSection: React.FC<InputSectionProps> = ({
     return (
         <section className="bg-purple-900/50 p-6 md:p-8 rounded-2xl border border-purple-800 shadow-lg">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                 <div className="md:col-span-2">
+                    <label htmlFor="project-name" className="block text-sm font-medium text-purple-300 mb-2">Nome do Projeto</label>
+                    <input
+                        id="project-name"
+                        type="text"
+                        className="w-full bg-slate-800 border border-purple-700 rounded-lg p-3 text-slate-200 focus:ring-2 focus:ring-pink-500 focus:border-pink-500 transition"
+                        placeholder="Ex: A Vingança do Roteirista"
+                        value={projectName}
+                        onChange={(e) => setProjectName(e.target.value)}
+                        disabled={isGenerating}
+                    />
+                </div>
                 <div className="md:col-span-2">
                     <label htmlFor="story-idea" className="block text-sm font-medium text-purple-300 mb-2">Sua Ideia</label>
                     <textarea
                         id="story-idea"
                         rows={6}
                         className="w-full bg-slate-800 border border-purple-700 rounded-lg p-3 text-slate-200 focus:ring-2 focus:ring-pink-500 focus:border-pink-500 transition"
-                        placeholder="Descreva a trama, os personagens e a premissa geral da sua história..."
+                        placeholder="Descreva a passagem ou história bíblica que você quer transformar em roteiro (ex: A história de Davi e Golias, A parábola do filho pródigo)..."
                         value={storyIdea}
                         onChange={(e) => setStoryIdea(e.target.value)}
                         disabled={isGenerating}

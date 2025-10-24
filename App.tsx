@@ -1,3 +1,4 @@
+
 import React, { useState, useCallback, useEffect } from 'react';
 import { Header } from './components/Header';
 import { InputSection } from './components/InputSection';
@@ -10,6 +11,7 @@ import type { ScriptData, HistoryItem } from './types';
 
 const App: React.FC = () => {
     // State for the active session
+    const [projectName, setProjectName] = useState('');
     const [storyIdea, setStoryIdea] = useState('');
     const [visualStyle, setVisualStyle] = useState('Cinematográfico');
     const [duration, setDuration] = useState('Curta');
@@ -57,6 +59,7 @@ const App: React.FC = () => {
     }, [history]);
 
     const resetActiveState = () => {
+        setProjectName('');
         setStoryIdea('');
         setVisualStyle('Cinematográfico');
         setDuration('Curta');
@@ -76,6 +79,7 @@ const App: React.FC = () => {
     const handleSelectChat = (id: string) => {
         const selected = history.find(item => item.id === id);
         if (selected) {
+            setProjectName(selected.projectName || '');
             setStoryIdea(selected.storyIdea);
             setVisualStyle(selected.visualStyle);
             setDuration(selected.duration);
@@ -142,7 +146,8 @@ const App: React.FC = () => {
                  if (!error || error.startsWith('Falha ao gerar a imagem')) setError(null);
                  const newHistoryItem: HistoryItem = {
                     id: Date.now().toString(),
-                    title: storyIdea.substring(0, 40) + (storyIdea.length > 40 ? '...' : ''),
+                    title: projectName.trim() || storyIdea.substring(0, 40) + (storyIdea.length > 40 ? '...' : ''),
+                    projectName,
                     storyIdea,
                     visualStyle,
                     duration,
@@ -156,13 +161,14 @@ const App: React.FC = () => {
                  setActiveSessionId(newHistoryItem.id);
             }
 
-        } catch (e) {
+        // FIX: Explicitly typing `e` as `any` to prevent potential parsing errors that might cause the reported scope issues.
+        } catch (e: any) {
             console.error(e);
             setError('Ocorreu um erro inesperado. Verifique o console para mais detalhes.');
         } finally {
             setIsGenerating(false);
         }
-    }, [storyIdea, visualStyle, duration, titleInstruction, descriptionInstruction, thumbnailInstruction, hasApiKey, error]);
+    }, [projectName, storyIdea, visualStyle, duration, titleInstruction, descriptionInstruction, thumbnailInstruction, hasApiKey, error]);
 
     const handleExport = () => {
         if (scriptData && scriptData.cenas) {
@@ -185,6 +191,8 @@ const App: React.FC = () => {
                         <Header />
                         <ApiKeySection onKeyStatusChange={handleKeyStatusChange} />
                         <InputSection
+                            projectName={projectName}
+                            setProjectName={setProjectName}
                             storyIdea={storyIdea}
                             setStoryIdea={setStoryIdea}
                             visualStyle={visualStyle}

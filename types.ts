@@ -31,6 +31,7 @@ export interface ScriptData {
 export interface HistoryItem {
   id: string;
   title: string;
+  projectName: string;
   storyIdea: string;
   visualStyle: string;
   duration: string;

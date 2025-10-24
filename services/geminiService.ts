@@ -1,10 +1,11 @@
 import { GoogleGenAI, Type } from "@google/genai";
 import type { ScriptData } from '../types';
 
-const getAiClient = () => {
-    const apiKey = localStorage.getItem('geminiApiKey');
+// Função auxiliar para obter o cliente da API Gemini com a chave do localStorage
+const getAiClient = (): GoogleGenAI => {
+    const apiKey = localStorage.getItem('gemini-api-key');
     if (!apiKey) {
-        throw new Error("Chave de API do Gemini não encontrada. Por favor, adicione-a nas configurações.");
+        throw new Error("Chave de API do Gemini não encontrada. Por favor, configure-a.");
     }
     return new GoogleGenAI({ apiKey });
 };
@@ -47,7 +48,10 @@ const generateScript = async (
     thumbnailInstruction: string
 ): Promise<ScriptData> => {
     const ai = getAiClient();
-    const systemInstruction = `Você é um roteirista mestre e especialista em marketing para YouTube. Sua tarefa é gerar um pacote completo de conteúdo. A saída DEVE ser um único objeto JSON, e NADA MAIS.
+    const systemInstruction = `**DIRETRIZ FUNDAMENTAL OBRIGATÓRIA: BASE BÍBLICA**
+Todas as histórias, personagens e eventos gerados DEVEM ser estritamente baseados em passagens da Bíblia Sagrada. A fidelidade ao texto bíblico é a prioridade máxima. É expressamente PROIBIDO inventar eventos, diálogos, personagens ou elementos fantásticos que não tenham base direta nas Escrituras. O objetivo é dramatizar as histórias bíblicas, não criar ficção nova.
+
+Você é um roteirista mestre e especialista em marketing para YouTube. Sua tarefa é gerar um pacote completo de conteúdo. A saída DEVE ser um único objeto JSON, e NADA MAIS.
 
 **REGRA DE OURO DA CONSISTÊNCIA (A MAIS IMPORTANTE):**
 Para garantir que os personagens principais tenham uma aparência consistente, a descrição visual detalhada (o "DNA do personagem") criada na seção "personagens" DEVE SER OBRIGATORIAMENTE INCLUÍDA em CADA "promptImagem" e "promptVideo" em que o personagem aparecer. Não pode haver exceções. A falha em incluir esta descrição exata resultará em um roteiro inconsistente e inútil.
@@ -62,7 +66,7 @@ Este objeto JSON deve ter três chaves de nível superior: "personagens", "cenas
     *   IMPORTANTE: As "falas" de cada cena DEVEM ser concisas, cabendo confortavelmente em 5 segundos de tempo de tela para manter um ritmo rápido e dinâmico.
     *   Cada objeto em "detalhes" representa uma ÚNICA AÇÃO e deve ter "descricaoHistoria" (string), "promptImagem" (string EM INGLÊS), e "promptVideo" (string EM INGLÊS).
     *   **REFORÇO DA REGRA DE OURO:** Para CADA "promptImagem" e "promptVideo", se um personagem da seção "personagens" estiver presente, você DEVE injetar a "descricao" completa e exata dele no prompt.
-        *   Exemplo de prompt CORRETO: 'A medium shot of (a man with short black hair, piercing blue eyes, a faint scar on his left cheek, wearing a worn brown leather jacket over a grey t-shirt, and dark jeans) looking worriedly at the rain outside a cafe window.'
+        *   Exemplo de prompt CORRETO: 'A medium shot of (a man with short black hair, piercing blue eyes, a faint scar on his left cheek, wearing a worn brown leather jacket over a grey t--shirt, and dark jeans) looking worriedly at the rain outside a cafe window.'
         *   Exemplo de prompt INCORRETO: 'A medium shot of John looking worriedly...' -> ISTO ESTÁ ERRADO porque não contém a descrição completa do "DNA" do personagem.
     *   O prompt de vídeo DEVE começar com um ângulo de câmera e incluir diálogos no formato 'NOME DO PERSONAGEM: fale em português brasileiro: "A fala aqui."'.
 
