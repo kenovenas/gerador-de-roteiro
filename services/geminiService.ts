@@ -1,11 +1,11 @@
 import { GoogleGenAI, Type } from "@google/genai";
 import type { ScriptData } from '../types';
 
-// Função auxiliar para obter o cliente da API Gemini com a chave do localStorage
-const getAiClient = (): GoogleGenAI => {
+// Função auxiliar para obter a chave da API e inicializar o cliente
+const getAiClient = () => {
     const apiKey = localStorage.getItem('gemini-api-key');
     if (!apiKey) {
-        throw new Error("Chave de API do Gemini não encontrada. Por favor, configure-a.");
+        throw new Error("A chave de API do Gemini não foi configurada. Por favor, adicione-a na seção de configuração.");
     }
     return new GoogleGenAI({ apiKey });
 };
@@ -161,9 +161,9 @@ Instruções para Thumbnail: ${thumbnailInstruction || 'Padrão: cores vibrantes
     } catch (error) {
         console.error("Error in generateScript:", error);
          if (error instanceof Error) {
-             throw new Error(`Falha ao analisar o roteiro da resposta da API: ${error.message}`);
+             throw new Error(`Falha ao gerar ou processar o roteiro da API: ${error.message}`);
         }
-        throw new Error("Falha ao analisar o roteiro da resposta da API.");
+        throw new Error("Falha ao gerar ou processar o roteiro da API.");
     }
 };
 

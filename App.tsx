@@ -1,4 +1,3 @@
-
 import React, { useState, useCallback, useEffect } from 'react';
 import { Header } from './components/Header';
 import { InputSection } from './components/InputSection';
@@ -10,6 +9,9 @@ import { ApiKeySection } from './components/ApiKeySection';
 import type { ScriptData, HistoryItem } from './types';
 
 const App: React.FC = () => {
+    // State for API Key
+    const [hasApiKey, setHasApiKey] = useState(false);
+
     // State for the active session
     const [projectName, setProjectName] = useState('');
     const [storyIdea, setStoryIdea] = useState('');
@@ -26,16 +28,6 @@ const App: React.FC = () => {
     // State for history management
     const [history, setHistory] = useState<HistoryItem[]>([]);
     const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
-
-    // State for API Key
-    const [hasApiKey, setHasApiKey] = useState(false);
-
-    const handleKeyStatusChange = (status: boolean) => {
-        setHasApiKey(status);
-         if (status && error === 'Por favor, configure sua chave de API do Gemini antes de gerar um roteiro.') {
-            setError(null);
-        }
-    };
 
     useEffect(() => {
         // Load history from localStorage on initial render
@@ -103,7 +95,7 @@ const App: React.FC = () => {
 
     const handleGenerate = useCallback(async () => {
         if (!hasApiKey) {
-            setError('Por favor, configure sua chave de API do Gemini antes de gerar um roteiro.');
+            setError('Por favor, configure sua chave de API do Gemini primeiro.');
             return;
         }
         if (!storyIdea.trim()) {
@@ -164,11 +156,11 @@ const App: React.FC = () => {
         // FIX: Explicitly typing `e` as `any` to prevent potential parsing errors that might cause the reported scope issues.
         } catch (e: any) {
             console.error(e);
-            setError('Ocorreu um erro inesperado. Verifique o console para mais detalhes.');
+            setError(`Ocorreu um erro inesperado: ${e.message}. Verifique o console para mais detalhes.`);
         } finally {
             setIsGenerating(false);
         }
-    }, [projectName, storyIdea, visualStyle, duration, titleInstruction, descriptionInstruction, thumbnailInstruction, hasApiKey, error]);
+    }, [hasApiKey, projectName, storyIdea, visualStyle, duration, titleInstruction, descriptionInstruction, thumbnailInstruction, error]);
 
     const handleExport = () => {
         if (scriptData && scriptData.cenas) {
@@ -189,7 +181,7 @@ const App: React.FC = () => {
                  <div className="min-h-screen bg-slate-900 text-slate-200 p-4 sm:p-6 lg:p-8">
                     <main className="max-w-7xl mx-auto flex flex-col gap-8">
                         <Header />
-                        <ApiKeySection onKeyStatusChange={handleKeyStatusChange} />
+                        <ApiKeySection onKeyStatusChange={setHasApiKey} />
                         <InputSection
                             projectName={projectName}
                             setProjectName={setProjectName}
@@ -206,7 +198,7 @@ const App: React.FC = () => {
                             thumbnailInstruction={thumbnailInstruction}
                             setThumbnailInstruction={setThumbnailInstruction}
                             onGenerate={handleGenerate}
-                            isGenerating={isGenerating}
+                            isGenerating={isGenerating || !hasApiKey}
                             isResultReady={!!scriptData}
                             onExport={handleExport}
                         />
