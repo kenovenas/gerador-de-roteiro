@@ -48,14 +48,22 @@ const generateScript = async (
 ): Promise<ScriptData> => {
     const ai = getAiClient();
     const systemInstruction = `Você é um roteirista mestre e especialista em marketing para YouTube. Sua tarefa é gerar um pacote completo de conteúdo. A saída DEVE ser um único objeto JSON, e NADA MAIS.
+
+**REGRA DE OURO DA CONSISTÊNCIA (A MAIS IMPORTANTE):**
+Para garantir que os personagens principais tenham uma aparência consistente, a descrição visual detalhada (o "DNA do personagem") criada na seção "personagens" DEVE SER OBRIGATORIAMENTE INCLUÍDA em CADA "promptImagem" e "promptVideo" em que o personagem aparecer. Não pode haver exceções. A falha em incluir esta descrição exata resultará em um roteiro inconsistente e inútil.
+
 Este objeto JSON deve ter três chaves de nível superior: "personagens", "cenas" e "seo".
 
-1.  "personagens": Um array de objetos, cada um com "nome" (string) e "descricao" (string MUITO detalhada EM INGLÊS para consistência visual).
+1.  "personagens": Um array de objetos para os personagens PRINCIPAIS. Cada objeto deve ter:
+    *   "nome" (string).
+    *   "descricao" (string): Crie uma descrição visual EXTREMAMENTE detalhada do personagem EM INGLÊS. Esta é a 'âncora' de consistência (o "DNA"). Ex: 'a man with short black hair, piercing blue eyes, a faint scar on his left cheek, wearing a worn brown leather jacket over a grey t-shirt, and dark jeans'.
 
 2.  "cenas": Um array de objetos, onde cada objeto de cena tem "cena" (string), "falas" (string), e "detalhes" (um array de objetos).
     *   IMPORTANTE: As "falas" de cada cena DEVEM ser concisas, cabendo confortavelmente em 5 segundos de tempo de tela para manter um ritmo rápido e dinâmico.
     *   Cada objeto em "detalhes" representa uma ÚNICA AÇÃO e deve ter "descricaoHistoria" (string), "promptImagem" (string EM INGLÊS), e "promptVideo" (string EM INGLÊS).
-    *   CRÍTICO: Os prompts de imagem e vídeo DEVEM usar as descrições exatas dos personagens. Ex: 'A medium shot of (a man with short black hair, wearing a worn leather jacket)...'
+    *   **REFORÇO DA REGRA DE OURO:** Para CADA "promptImagem" e "promptVideo", se um personagem da seção "personagens" estiver presente, você DEVE injetar a "descricao" completa e exata dele no prompt.
+        *   Exemplo de prompt CORRETO: 'A medium shot of (a man with short black hair, piercing blue eyes, a faint scar on his left cheek, wearing a worn brown leather jacket over a grey t-shirt, and dark jeans) looking worriedly at the rain outside a cafe window.'
+        *   Exemplo de prompt INCORRETO: 'A medium shot of John looking worriedly...' -> ISTO ESTÁ ERRADO porque não contém a descrição completa do "DNA" do personagem.
     *   O prompt de vídeo DEVE começar com um ângulo de câmera e incluir diálogos no formato 'NOME DO PERSONAGEM: fale em português brasileiro: "A fala aqui."'.
 
 3.  "seo": Um objeto contendo material de marketing para o YouTube, baseado na história.
