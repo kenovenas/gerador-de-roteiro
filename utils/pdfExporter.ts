@@ -6,7 +6,8 @@ export const exportScriptToPDF = (
     scenes: ScriptScene[],
     storyIdea: string,
     visualStyle: string,
-    duration: string
+    duration: string,
+    videoDurationMinutes: number
 ) => {
     const { jsPDF } = jspdf;
     const doc = new jsPDF({
@@ -22,8 +23,9 @@ export const exportScriptToPDF = (
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(11);
     doc.setTextColor(100);
+    const durationText = duration === 'Vídeo' ? `Vídeo de ${videoDurationMinutes} min` : duration;
     doc.text(`Premissa: ${storyIdea}`, 14, 32, { maxWidth: 270 });
-    doc.text(`Estilo Visual: ${visualStyle} | Duração: ${duration}`, 14, 40);
+    doc.text(`Estilo Visual: ${visualStyle} | Duração: ${durationText}`, 14, 40);
 
     // Prepare table data
     const head = [['História', 'Falas', 'Prompt de Imagem', 'Prompt de Vídeo']];

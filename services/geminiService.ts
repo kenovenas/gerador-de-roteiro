@@ -45,7 +45,8 @@ const generateScript = async (
     duration: string,
     titleInstruction: string,
     descriptionInstruction: string,
-    thumbnailInstruction: string
+    thumbnailInstruction: string,
+    videoDurationMinutes: number
 ): Promise<ScriptData> => {
     const ai = getAiClient();
     const systemInstruction = `**DIRETRIZ FUNDAMENTAL OBRIGATÓRIA: BASE BÍBLICA**
@@ -76,22 +77,25 @@ Este objeto JSON deve ter três chaves de nível superior: "personagens", "cenas
     *   "promptsThumbnail" (array de 3 strings): Crie 3 prompts de imagem detalhados (EM INGLÊS) para gerar uma thumbnail de vídeo clicável. Pense em contraste, emoção e clareza.
     *   "tags" (array de strings): Gere uma lista de tags de SEO relevantes para o YouTube, incluindo temas gerais e específicos da história.
 
-REGRAS ESPECIAIS PARA ROTEIROS DE VÍDEO (10 minutos):
+REGRAS ESPECIAIS PARA ROTEIROS DE VÍDEO:
 1.  É ESSENCIAL que o roteiro contenha diálogos e falas consistentes do início ao fim.
 2.  As CENAS FINAIS (últimas 2 ou 3) DEVEM OBRIGATORIAMENTE incluir uma chamada para ação (call to action), pedindo ao público para se inscrever, deixar 'like' e ativar notificações.`;
     
     let userQuery: string;
-    const baseQuery = `Premissa da história: ${storyIdea}. Estilo visual: ${visualStyle}. Duração: ${duration}.`;
+    const baseQuery = `Premissa da história: ${storyIdea}. Estilo visual: ${visualStyle}.`;
     const seoInstructions = `
 Instruções para Títulos: ${titleInstruction || 'Padrão: gerar curiosidade e ser impactante.'}
 Instruções para Descrição: ${descriptionInstruction || 'Padrão: resumir a história e adicionar CTA.'}
 Instruções para Thumbnail: ${thumbnailInstruction || 'Padrão: cores vibrantes, mostrar emoção.'}
 `;
 
-    if (duration === '10 minutos de vídeo') {
-        userQuery = `Gere um roteiro com exatamente 100 cenas para um vídeo de 10 minutos e o conteúdo SEO correspondente. ${baseQuery} ${seoInstructions}`;
+    if (duration === 'Vídeo') {
+        const numScenes = Math.max(videoDurationMinutes * 10, 10);
+        const durationQuery = `Duração: ${videoDurationMinutes} minutos.`;
+        userQuery = `Gere um roteiro com aproximadamente ${numScenes} cenas para um vídeo de ${videoDurationMinutes} minutos e o conteúdo SEO correspondente. ${baseQuery} ${durationQuery} ${seoInstructions}`;
     } else {
-        userQuery = `Gere um roteiro de filme e o conteúdo SEO correspondente. ${baseQuery} ${seoInstructions}`;
+        const durationQuery = `Duração: ${duration}.`;
+        userQuery = `Gere um roteiro de filme e o conteúdo SEO correspondente. ${baseQuery} ${durationQuery} ${seoInstructions}`;
     }
 
     const responseSchema = {
@@ -173,11 +177,12 @@ export const generateScriptAndImage = async (
     duration: string,
     titleInstruction: string,
     descriptionInstruction: string,
-    thumbnailInstruction: string
+    thumbnailInstruction: string,
+    videoDurationMinutes: number
 ) => {
     const [imageResult, scriptResult] = await Promise.allSettled([
         generateImage(storyIdea, visualStyle),
-        generateScript(storyIdea, visualStyle, duration, titleInstruction, descriptionInstruction, thumbnailInstruction)
+        generateScript(storyIdea, visualStyle, duration, titleInstruction, descriptionInstruction, thumbnailInstruction, videoDurationMinutes)
     ]);
     return { imageResult, scriptResult };
 };

@@ -17,6 +17,7 @@ const App: React.FC = () => {
     const [storyIdea, setStoryIdea] = useState('');
     const [visualStyle, setVisualStyle] = useState('Cinematográfico');
     const [duration, setDuration] = useState('Curta');
+    const [videoDurationMinutes, setVideoDurationMinutes] = useState(10);
     const [titleInstruction, setTitleInstruction] = useState('');
     const [descriptionInstruction, setDescriptionInstruction] = useState('');
     const [thumbnailInstruction, setThumbnailInstruction] = useState('');
@@ -55,6 +56,7 @@ const App: React.FC = () => {
         setStoryIdea('');
         setVisualStyle('Cinematográfico');
         setDuration('Curta');
+        setVideoDurationMinutes(10);
         setTitleInstruction('');
         setDescriptionInstruction('');
         setThumbnailInstruction('');
@@ -75,6 +77,7 @@ const App: React.FC = () => {
             setStoryIdea(selected.storyIdea);
             setVisualStyle(selected.visualStyle);
             setDuration(selected.duration);
+            setVideoDurationMinutes(selected.videoDurationMinutes || 10);
             setTitleInstruction(selected.titleInstruction);
             setDescriptionInstruction(selected.descriptionInstruction);
             setThumbnailInstruction(selected.thumbnailInstruction);
@@ -115,7 +118,8 @@ const App: React.FC = () => {
                 duration,
                 titleInstruction,
                 descriptionInstruction,
-                thumbnailInstruction
+                thumbnailInstruction,
+                videoDurationMinutes
             );
             
             const newImage = results.imageResult.status === 'fulfilled' ? results.imageResult.value : null;
@@ -143,6 +147,7 @@ const App: React.FC = () => {
                     storyIdea,
                     visualStyle,
                     duration,
+                    videoDurationMinutes,
                     titleInstruction,
                     descriptionInstruction,
                     thumbnailInstruction,
@@ -160,11 +165,11 @@ const App: React.FC = () => {
         } finally {
             setIsGenerating(false);
         }
-    }, [hasApiKey, projectName, storyIdea, visualStyle, duration, titleInstruction, descriptionInstruction, thumbnailInstruction, error]);
+    }, [hasApiKey, projectName, storyIdea, visualStyle, duration, videoDurationMinutes, titleInstruction, descriptionInstruction, thumbnailInstruction, error]);
 
     const handleExport = () => {
         if (scriptData && scriptData.cenas) {
-            exportScriptToPDF(scriptData.cenas, storyIdea, visualStyle, duration);
+            exportScriptToPDF(scriptData.cenas, storyIdea, visualStyle, duration, videoDurationMinutes);
         }
     };
 
@@ -191,6 +196,8 @@ const App: React.FC = () => {
                             setVisualStyle={setVisualStyle}
                             duration={duration}
                             setDuration={setDuration}
+                            videoDurationMinutes={videoDurationMinutes}
+                            setVideoDurationMinutes={setVideoDurationMinutes}
                             titleInstruction={titleInstruction}
                             setTitleInstruction={setTitleInstruction}
                             descriptionInstruction={descriptionInstruction}

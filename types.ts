@@ -35,6 +35,7 @@ export interface HistoryItem {
   storyIdea: string;
   visualStyle: string;
   duration: string;
+  videoDurationMinutes: number;
   titleInstruction: string;
   descriptionInstruction: string;
   thumbnailInstruction: string;

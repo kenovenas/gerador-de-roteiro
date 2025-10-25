@@ -10,6 +10,8 @@ interface InputSectionProps {
     setVisualStyle: (value: string) => void;
     duration: string;
     setDuration: (value: string) => void;
+    videoDurationMinutes: number;
+    setVideoDurationMinutes: (value: number) => void;
     titleInstruction: string;
     setTitleInstruction: (value: string) => void;
     descriptionInstruction: string;
@@ -24,11 +26,11 @@ interface InputSectionProps {
 
 export const InputSection: React.FC<InputSectionProps> = ({
     projectName, setProjectName, storyIdea, setStoryIdea, visualStyle, setVisualStyle, duration, setDuration,
-    titleInstruction, setTitleInstruction, descriptionInstruction, setDescriptionInstruction,
+    videoDurationMinutes, setVideoDurationMinutes, titleInstruction, setTitleInstruction, descriptionInstruction, setDescriptionInstruction,
     thumbnailInstruction, setThumbnailInstruction, onGenerate, isGenerating, isResultReady, onExport
 }) => {
     const visualStyles = ["Cinematográfico", "Hiper-realista", "Ultra Realista em 8k", "Longa animado (Estilo Pixar)", "CGI Ultra-realista", "Estilo Cyberpunk", "Fantasia Épica (Senhor dos Anéis)", "Noir Clássico", "Terror Cósmico (Lovecraft)"];
-    const durations = ["Curta", "Média", "Longa", "10 minutos de vídeo"];
+    const durations = ["Curta", "Média", "Longa", "Vídeo"];
 
     return (
         <section className="bg-purple-900/50 p-6 md:p-8 rounded-2xl border border-purple-800 shadow-lg">
@@ -81,6 +83,22 @@ export const InputSection: React.FC<InputSectionProps> = ({
                         {durations.map(d => <option key={d} value={d}>{d}</option>)}
                     </select>
                 </div>
+
+                {duration === 'Vídeo' && (
+                     <div className="md:col-span-2">
+                        <label htmlFor="video-duration-minutes" className="block text-sm font-medium text-purple-300 mb-2">Duração do Vídeo (minutos)</label>
+                        <input
+                            id="video-duration-minutes"
+                            type="number"
+                            min="1"
+                            className="w-full bg-slate-800 border border-purple-700 rounded-lg p-3 text-slate-200 focus:ring-2 focus:ring-pink-500 focus:border-pink-500 transition"
+                            placeholder="Ex: 5"
+                            value={videoDurationMinutes}
+                            onChange={(e) => setVideoDurationMinutes(Math.max(1, parseInt(e.target.value, 10) || 1))}
+                            disabled={isGenerating}
+                        />
+                    </div>
+                )}
 
                 <div className="md:col-span-2 space-y-4">
                      <div>
