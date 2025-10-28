@@ -22,6 +22,8 @@ export interface SeoData {
   tags: string[];
 }
 
+export type SeoPart = 'titulos' | 'descricao' | 'promptsThumbnail' | 'tags';
+
 export interface ScriptData {
   personagens: Character[];
   cenas: ScriptScene[];

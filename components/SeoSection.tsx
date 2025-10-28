@@ -1,8 +1,11 @@
 import React, { useState, useCallback } from 'react';
-import type { SeoData } from '../types';
+import type { SeoData, SeoPart } from '../types';
+import { Spinner } from './Spinner';
 
 interface SeoSectionProps {
     seoData: SeoData;
+    onRegenerate: (part: SeoPart, instructions: string) => void;
+    isRegenerating: SeoPart | null;
 }
 
 const CopyIcon = () => (
@@ -17,7 +20,6 @@ const CheckIcon = () => (
     </svg>
 );
 
-
 const CopyButton: React.FC<{ textToCopy: string }> = ({ textToCopy }) => {
     const [copied, setCopied] = useState(false);
 
@@ -31,7 +33,7 @@ const CopyButton: React.FC<{ textToCopy: string }> = ({ textToCopy }) => {
     return (
         <button
             onClick={handleCopy}
-            className="absolute top-2 right-2 p-1.5 bg-slate-700 rounded-md text-slate-300 hover:bg-slate-600 transition"
+            className="p-1.5 bg-slate-700 rounded-md text-slate-300 hover:bg-slate-600 transition"
             aria-label="Copiar"
         >
             {copied ? <CheckIcon /> : <CopyIcon />}
@@ -39,8 +41,64 @@ const CopyButton: React.FC<{ textToCopy: string }> = ({ textToCopy }) => {
     );
 };
 
+const RegenerateControl: React.FC<{
+    partName: SeoPart,
+    onGenerate: (part: SeoPart, instructions: string) => void,
+    isGenerating: boolean,
+}> = ({ partName, onGenerate, isGenerating }) => {
+    const [isEditing, setIsEditing] = useState(false);
+    const [instructions, setInstructions] = useState('');
 
-export const SeoSection: React.FC<SeoSectionProps> = ({ seoData }) => {
+    const handleGenerateClick = () => {
+        if (instructions.trim()) {
+            onGenerate(partName, instructions);
+            // setIsEditing(false); // Optionally close on generation
+        }
+    };
+
+    return (
+        <div className="mt-4">
+            {!isEditing && (
+                 <button
+                    onClick={() => setIsEditing(true)}
+                    className="text-xs text-purple-400 hover:text-pink-400 font-semibold transition-colors"
+                >
+                    Gerar Novamente
+                </button>
+            )}
+            {isEditing && (
+                <div className="flex flex-col sm:flex-row gap-2 mt-2">
+                    <input
+                        type="text"
+                        value={instructions}
+                        onChange={(e) => setInstructions(e.target.value)}
+                        className="flex-grow bg-slate-700 border border-purple-700 rounded-lg p-2 text-slate-200 focus:ring-2 focus:ring-pink-500 focus:border-pink-500 transition"
+                        placeholder="Adicionar instruções (ex: mais curtos, tom formal...)"
+                        disabled={isGenerating}
+                    />
+                    <button
+                        onClick={handleGenerateClick}
+                        disabled={isGenerating || !instructions.trim()}
+                        className="flex items-center justify-center gap-1 bg-purple-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                        {isGenerating ? <Spinner /> : null}
+                        Gerar
+                    </button>
+                    <button
+                        onClick={() => setIsEditing(false)}
+                        disabled={isGenerating}
+                        className="text-slate-400 hover:text-white text-sm py-2 px-4 rounded-lg"
+                    >
+                        Cancelar
+                    </button>
+                </div>
+            )}
+        </div>
+    )
+};
+
+
+export const SeoSection: React.FC<SeoSectionProps> = ({ seoData, onRegenerate, isRegenerating }) => {
     return (
         <div className="bg-purple-900/50 p-6 rounded-2xl border border-purple-800 shadow-lg space-y-8">
             <h2 className="text-2xl font-bold text-center text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-500">
@@ -48,37 +106,49 @@ export const SeoSection: React.FC<SeoSectionProps> = ({ seoData }) => {
             </h2>
 
             {/* Títulos Sugeridos */}
-            <div className="relative bg-slate-800 p-4 rounded-lg border border-purple-700">
-                <h3 className="text-lg font-semibold text-purple-300 mb-3">Títulos Sugeridos</h3>
+            <div className="bg-slate-800 p-4 rounded-lg border border-purple-700">
+                <div className="flex justify-between items-start">
+                    <h3 className="text-lg font-semibold text-purple-300 mb-3">Títulos Sugeridos</h3>
+                    <CopyButton textToCopy={seoData.titulos.join('\n')} />
+                </div>
                 <ul className="space-y-2 list-disc list-inside">
                     {seoData.titulos.map((title, index) => (
                         <li key={index} className="text-slate-300">{title}</li>
                     ))}
                 </ul>
-                <CopyButton textToCopy={seoData.titulos.join('\n')} />
+                <RegenerateControl partName="titulos" onGenerate={onRegenerate} isGenerating={isRegenerating === 'titulos'} />
             </div>
 
             {/* Descrição do Vídeo */}
-            <div className="relative bg-slate-800 p-4 rounded-lg border border-purple-700">
-                <h3 className="text-lg font-semibold text-purple-300 mb-3">Descrição do Vídeo</h3>
+            <div className="bg-slate-800 p-4 rounded-lg border border-purple-700">
+                <div className="flex justify-between items-start">
+                    <h3 className="text-lg font-semibold text-purple-300 mb-3">Descrição do Vídeo</h3>
+                    <CopyButton textToCopy={seoData.descricao} />
+                </div>
                 <p className="text-slate-300 whitespace-pre-wrap">{seoData.descricao}</p>
-                <CopyButton textToCopy={seoData.descricao} />
+                 <RegenerateControl partName="descricao" onGenerate={onRegenerate} isGenerating={isRegenerating === 'descricao'} />
             </div>
 
             {/* Prompts para Thumbnail */}
-            <div className="relative bg-slate-800 p-4 rounded-lg border border-purple-700">
-                <h3 className="text-lg font-semibold text-purple-300 mb-3">Prompts para Thumbnail</h3>
+            <div className="bg-slate-800 p-4 rounded-lg border border-purple-700">
+                <div className="flex justify-between items-start">
+                    <h3 className="text-lg font-semibold text-purple-300 mb-3">Prompts para Thumbnail</h3>
+                    <CopyButton textToCopy={seoData.promptsThumbnail.join('\n\n')} />
+                </div>
                 <ul className="space-y-2 list-disc list-inside">
                     {seoData.promptsThumbnail.map((prompt, index) => (
                         <li key={index} className="text-slate-300 font-mono text-sm">{prompt}</li>
                     ))}
                 </ul>
-                 <CopyButton textToCopy={seoData.promptsThumbnail.join('\n\n')} />
+                 <RegenerateControl partName="promptsThumbnail" onGenerate={onRegenerate} isGenerating={isRegenerating === 'promptsThumbnail'} />
             </div>
 
             {/* Tags (SEO) */}
-            <div className="relative bg-slate-800 p-4 rounded-lg border border-purple-700">
-                <h3 className="text-lg font-semibold text-purple-300 mb-3">Tags (SEO)</h3>
+            <div className="bg-slate-800 p-4 rounded-lg border border-purple-700">
+                <div className="flex justify-between items-start">
+                    <h3 className="text-lg font-semibold text-purple-300 mb-3">Tags (SEO)</h3>
+                    <CopyButton textToCopy={seoData.tags.join(', ')} />
+                </div>
                 <div className="flex flex-wrap gap-2">
                     {seoData.tags.map((tag, index) => (
                         <span key={index} className="bg-slate-700 text-pink-300 text-sm font-medium px-3 py-1 rounded-full">
@@ -86,7 +156,7 @@ export const SeoSection: React.FC<SeoSectionProps> = ({ seoData }) => {
                         </span>
                     ))}
                 </div>
-                 <CopyButton textToCopy={seoData.tags.join(', ')} />
+                 <RegenerateControl partName="tags" onGenerate={onRegenerate} isGenerating={isRegenerating === 'tags'} />
             </div>
         </div>
     );

@@ -2,11 +2,11 @@ import React, { useState, useCallback, useEffect } from 'react';
 import { Header } from './components/Header';
 import { InputSection } from './components/InputSection';
 import { OutputSection } from './components/OutputSection';
-import { generateScript } from './services/geminiService';
+import { generateScript, regenerateSeoPart } from './services/geminiService';
 import { exportScriptToPDF } from './utils/pdfExporter';
 import { HistorySidebar } from './components/HistorySidebar';
 import { ApiKeySection } from './components/ApiKeySection';
-import type { ScriptData, HistoryItem } from './types';
+import type { ScriptData, HistoryItem, SeoPart } from './types';
 
 const App: React.FC = () => {
     // State for API Key
@@ -22,6 +22,7 @@ const App: React.FC = () => {
     const [descriptionInstruction, setDescriptionInstruction] = useState('');
     const [thumbnailInstruction, setThumbnailInstruction] = useState('');
     const [isGenerating, setIsGenerating] = useState(false);
+    const [isRegenerating, setIsRegenerating] = useState<SeoPart | null>(null);
     const [error, setError] = useState<string | null>(null);
     const [scriptData, setScriptData] = useState<ScriptData | null>(null);
     
@@ -146,6 +147,41 @@ const App: React.FC = () => {
         }
     }, [hasApiKey, projectName, storyIdea, visualStyle, duration, videoDurationMinutes, titleInstruction, descriptionInstruction, thumbnailInstruction]);
 
+    const handleRegenerateSeo = useCallback(async (part: SeoPart, instructions: string) => {
+        if (!scriptData) return;
+
+        setIsRegenerating(part);
+        setError(null);
+        try {
+            const regeneratedPart = await regenerateSeoPart(part, storyIdea, scriptData, instructions);
+
+            const updatedScriptData = {
+                ...scriptData,
+                seo: {
+                    ...scriptData.seo,
+                    ...regeneratedPart,
+                },
+            };
+            
+            setScriptData(updatedScriptData);
+
+            // Update history as well
+            setHistory(prev => 
+                prev.map(item => 
+                    item.id === activeSessionId 
+                        ? { ...item, scriptData: updatedScriptData } 
+                        : item
+                )
+            );
+
+        } catch (e: any) {
+            console.error(e);
+            setError(`Falha ao regenerar a seção de SEO: ${e.message}`);
+        } finally {
+            setIsRegenerating(null);
+        }
+    }, [scriptData, storyIdea, activeSessionId]);
+
     const handleExport = () => {
         if (scriptData && scriptData.cenas) {
             exportScriptToPDF(scriptData.cenas, storyIdea, visualStyle, duration, videoDurationMinutes);
@@ -184,7 +220,7 @@ const App: React.FC = () => {
                             thumbnailInstruction={thumbnailInstruction}
                             setThumbnailInstruction={setThumbnailInstruction}
                             onGenerate={handleGenerate}
-                            isGenerating={isGenerating || !hasApiKey}
+                            isGenerating={isGenerating || !hasApiKey || !!isRegenerating}
                             isResultReady={!!scriptData}
                             onExport={handleExport}
                         />
@@ -192,6 +228,8 @@ const App: React.FC = () => {
                             isGenerating={isGenerating}
                             error={error}
                             scriptData={scriptData}
+                            onRegenerateSeo={handleRegenerateSeo}
+                            isRegeneratingSeo={isRegenerating}
                         />
                     </main>
                 </div>

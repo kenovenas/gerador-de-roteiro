@@ -1,15 +1,17 @@
 import React from 'react';
 import { ScriptTable } from './ScriptTable';
 import { SeoSection } from './SeoSection';
-import type { ScriptData } from '../types';
+import type { ScriptData, SeoPart } from '../types';
 
 interface OutputSectionProps {
     isGenerating: boolean;
     error: string | null;
     scriptData: ScriptData | null;
+    onRegenerateSeo: (part: SeoPart, instructions: string) => void;
+    isRegeneratingSeo: SeoPart | null;
 }
 
-export const OutputSection: React.FC<OutputSectionProps> = ({ isGenerating, error, scriptData }) => {
+export const OutputSection: React.FC<OutputSectionProps> = ({ isGenerating, error, scriptData, onRegenerateSeo, isRegeneratingSeo }) => {
     if (!isGenerating && !error && !scriptData) {
         return null;
     }
@@ -25,7 +27,7 @@ export const OutputSection: React.FC<OutputSectionProps> = ({ isGenerating, erro
             {scriptData && scriptData.cenas ? (
                 <>
                     <ScriptTable data={scriptData.cenas} />
-                    {scriptData.seo && <SeoSection seoData={scriptData.seo} />}
+                    {scriptData.seo && <SeoSection seoData={scriptData.seo} onRegenerate={onRegenerateSeo} isRegenerating={isRegeneratingSeo} />}
                 </>
             ) : isGenerating ? (
                 <div className="w-full h-64 flex items-center justify-center bg-purple-900/50 border-2 border-dashed border-purple-700 rounded-xl">

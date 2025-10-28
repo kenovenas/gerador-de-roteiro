@@ -1,5 +1,5 @@
 import { GoogleGenAI, Type } from "@google/genai";
-import type { ScriptData } from '../types';
+import type { ScriptData, SeoPart } from '../types';
 
 // Função auxiliar para obter a chave da API e inicializar o cliente
 const getAiClient = () => {
@@ -10,17 +10,7 @@ const getAiClient = () => {
     return new GoogleGenAI({ apiKey });
 };
 
-export const generateScript = async (
-    storyIdea: string,
-    visualStyle: string,
-    duration: string,
-    titleInstruction: string,
-    descriptionInstruction: string,
-    thumbnailInstruction: string,
-    videoDurationMinutes: number
-): Promise<ScriptData> => {
-    const ai = getAiClient();
-    const systemInstruction = `**DIRETRIZ FUNDAMENTAL OBRIGATÓRIA: BASE BÍBLICA**
+const fullSystemInstruction = `**DIRETRIZ FUNDAMENTAL OBRIGATÓRIA: BASE BÍBLICA**
 Todas as histórias, personagens e eventos gerados DEVEM ser estritamente baseados em passagens da Bíblia Sagrada. A fidelidade ao texto bíblico é a prioridade máxima. É expressamente PROIBIDO inventar eventos, diálogos, personagens ou elementos fantásticos que não tenham base direta nas Escrituras. O objetivo é dramatizar as histórias bíblicas, não criar ficção nova.
 
 Você é um roteirista mestre e especialista em marketing para YouTube. Sua tarefa é gerar um pacote completo de conteúdo. A saída DEVE ser um único objeto JSON, e NADA MAIS.
@@ -52,6 +42,42 @@ REGRAS ESPECIAIS PARA ROTEIROS DE VÍDEO:
 1.  É ESSENCIAL que o roteiro contenha diálogos e falas consistentes do início ao fim.
 2.  AS CENAS FINAIS (últimas 2 ou 3) DEVEM OBRIGATORIAMENTE incluir uma chamada para ação (call to action), pedindo ao público para se inscrever, deixar 'like' e ativar notificações.
 3.  **CONTAGEM DE CENAS É A PRIORIDADE MÁXIMA E INEGOCIÁVEL:** Se for solicitado um roteiro de vídeo, a instrução sobre o número de cenas (10 por minuto) TEM PRECEDÊNCIA ABSOLUTA sobre qualquer outra diretriz de estilo ou conteúdo. O número de objetos no array 'cenas' DEVE ser exatamente o número solicitado.`;
+    
+
+const handleApiError = (error: unknown) => {
+    console.error("Error calling Gemini API:", error);
+    if (error instanceof Error) {
+        let userFriendlyMessage = error.message;
+        // Attempt to parse a more specific error message from the API response
+        try {
+            // Error messages from the API are often stringified JSON within the `message` property
+            const apiError = JSON.parse(userFriendlyMessage);
+            if (apiError?.error?.message) {
+                if (apiError.error.code === 503 || apiError.error.status === "UNAVAILABLE") {
+                    userFriendlyMessage = "O modelo de IA está sobrecarregado. Tente novamente mais tarde.";
+                } else {
+                    userFriendlyMessage = apiError.error.message;
+                }
+            }
+        } catch (e) {
+            // Not a JSON error, which is fine. The original message will be used.
+        }
+        throw new Error(userFriendlyMessage);
+    }
+    throw new Error("Ocorreu um erro desconhecido ao se comunicar com a API.");
+};
+
+
+export const generateScript = async (
+    storyIdea: string,
+    visualStyle: string,
+    duration: string,
+    titleInstruction: string,
+    descriptionInstruction: string,
+    thumbnailInstruction: string,
+    videoDurationMinutes: number
+): Promise<ScriptData> => {
+    const ai = getAiClient();
     
     let userQuery: string;
     const baseQuery = `Premissa da história: ${storyIdea}. Estilo visual: ${visualStyle}.`;
@@ -125,7 +151,7 @@ Instruções para Thumbnail: ${thumbnailInstruction || 'Padrão: cores vibrantes
             model: "gemini-2.5-pro",
             contents: userQuery,
             config: {
-                systemInstruction: systemInstruction,
+                systemInstruction: fullSystemInstruction,
                 responseMimeType: "application/json",
                 responseSchema: responseSchema,
             },
@@ -134,23 +160,62 @@ Instruções para Thumbnail: ${thumbnailInstruction || 'Padrão: cores vibrantes
         const jsonText = response.text.trim();
         return JSON.parse(jsonText) as ScriptData;
     } catch (error) {
-        console.error("Error in generateScript:", error);
-         if (error instanceof Error) {
-            let userFriendlyMessage = error.message;
-            try {
-                const apiError = JSON.parse(userFriendlyMessage);
-                if (apiError?.error?.message) {
-                    if (apiError.error.code === 503 || apiError.error.status === "UNAVAILABLE") {
-                        userFriendlyMessage = "O modelo de IA está sobrecarregado. Tente novamente mais tarde.";
-                    } else {
-                        userFriendlyMessage = apiError.error.message;
-                    }
-                }
-            } catch (e) {
-                // Not a JSON error, which is fine. The original message will be used.
-            }
-            throw new Error(userFriendlyMessage);
-        }
-        throw new Error("Ocorreu um erro desconhecido ao gerar o roteiro.");
+       handleApiError(error);
+       throw error; // Re-throw to be caught by the UI
+    }
+};
+
+export const regenerateSeoPart = async (
+    part: SeoPart,
+    storyIdea: string,
+    scriptData: ScriptData,
+    instructions: string
+): Promise<Partial<ScriptData['seo']>> => {
+    const ai = getAiClient();
+    const systemInstruction = `Você é um especialista em marketing para YouTube. Sua tarefa é regenerar UMA parte específica do conteúdo de SEO para um vídeo, com base em novas instruções. Forneça a saída APENAS como um objeto JSON contendo a chave solicitada.`;
+
+    const userQuery = `O roteiro é sobre: "${storyIdea}".
+    
+Instrução para regeneração: "${instructions}"
+
+Regenere a seguinte parte do SEO: "${part}".
+
+Contexto do roteiro existente (para sua referência):
+${JSON.stringify({ personagens: scriptData.personagens, cenas: scriptData.cenas.slice(0, 3) })}
+`;
+    
+    let responseSchema: any;
+    switch (part) {
+        case 'titulos':
+            responseSchema = { type: Type.OBJECT, properties: { titulos: { type: Type.ARRAY, items: { type: Type.STRING } } }, required: ["titulos"] };
+            break;
+        case 'descricao':
+            responseSchema = { type: Type.OBJECT, properties: { descricao: { type: Type.STRING } }, required: ["descricao"] };
+            break;
+        case 'promptsThumbnail':
+            responseSchema = { type: Type.OBJECT, properties: { promptsThumbnail: { type: Type.ARRAY, items: { type: Type.STRING } } }, required: ["promptsThumbnail"] };
+            break;
+        case 'tags':
+            responseSchema = { type: Type.OBJECT, properties: { tags: { type: Type.ARRAY, items: { type: Type.STRING } } }, required: ["tags"] };
+            break;
+        default:
+            throw new Error("Parte de SEO inválida para regeneração.");
+    }
+
+    try {
+        const response = await ai.models.generateContent({
+            model: "gemini-2.5-pro",
+            contents: userQuery,
+            config: {
+                systemInstruction: systemInstruction,
+                responseMimeType: "application/json",
+                responseSchema: responseSchema,
+            },
+        });
+        const jsonText = response.text.trim();
+        return JSON.parse(jsonText) as Partial<ScriptData['seo']>;
+    } catch (error) {
+        handleApiError(error);
+        throw error; // Re-throw to be caught by the UI
     }
 };
