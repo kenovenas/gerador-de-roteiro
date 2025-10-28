@@ -40,5 +40,4 @@ export interface HistoryItem {
   descriptionInstruction: string;
   thumbnailInstruction: string;
   scriptData: ScriptData | null;
-  generatedImage: string | null;
 }

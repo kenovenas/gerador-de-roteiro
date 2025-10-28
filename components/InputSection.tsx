@@ -85,18 +85,25 @@ export const InputSection: React.FC<InputSectionProps> = ({
                 </div>
 
                 {duration === 'Vídeo' && (
-                     <div className="md:col-span-2">
-                        <label htmlFor="video-duration-minutes" className="block text-sm font-medium text-purple-300 mb-2">Duração do Vídeo (minutos)</label>
-                        <input
-                            id="video-duration-minutes"
-                            type="number"
-                            min="1"
-                            className="w-full bg-slate-800 border border-purple-700 rounded-lg p-3 text-slate-200 focus:ring-2 focus:ring-pink-500 focus:border-pink-500 transition"
-                            placeholder="Ex: 5"
-                            value={videoDurationMinutes}
-                            onChange={(e) => setVideoDurationMinutes(Math.max(1, parseInt(e.target.value, 10) || 1))}
-                            disabled={isGenerating}
-                        />
+                     <div className="md:col-span-2 space-y-2">
+                        <div>
+                            <label htmlFor="video-duration-minutes" className="block text-sm font-medium text-purple-300 mb-2">Duração do Vídeo (minutos)</label>
+                            <input
+                                id="video-duration-minutes"
+                                type="number"
+                                min="1"
+                                className="w-full bg-slate-800 border border-purple-700 rounded-lg p-3 text-slate-200 focus:ring-2 focus:ring-pink-500 focus:border-pink-500 transition"
+                                placeholder="Ex: 5"
+                                value={videoDurationMinutes}
+                                onChange={(e) => setVideoDurationMinutes(Math.max(1, parseInt(e.target.value, 10) || 1))}
+                                disabled={isGenerating}
+                            />
+                        </div>
+                        {videoDurationMinutes > 30 && (
+                            <div className="bg-yellow-900/50 border border-yellow-700 text-yellow-300 p-3 rounded-lg text-sm">
+                                <p><span className="font-bold">Aviso:</span> Gerar roteiros para vídeos longos ({videoDurationMinutes} minutos) pode demorar bastante e aumenta a chance de erros ou timeouts da API.</p>
+                            </div>
+                        )}
                     </div>
                 )}
 

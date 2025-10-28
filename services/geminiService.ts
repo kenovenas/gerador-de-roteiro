@@ -10,36 +10,7 @@ const getAiClient = () => {
     return new GoogleGenAI({ apiKey });
 };
 
-const generateImage = async (storyIdea: string, visualStyle: string): Promise<string> => {
-    const ai = getAiClient();
-    const userPrompt = `Uma imagem espetacular e cinematográfica em 16:9, no estilo de um pôster de filme. Estilo visual: ${visualStyle}. Baseado na premissa: "${storyIdea}". Se houver qualquer texto visível na imagem (como o título do filme), ele deve estar em português.`;
-    
-    try {
-        const response = await ai.models.generateImages({
-            model: 'imagen-4.0-generate-001',
-            prompt: userPrompt,
-            config: {
-              numberOfImages: 1,
-              outputMimeType: 'image/png',
-              aspectRatio: '16:9',
-            },
-        });
-
-        if (response.generatedImages && response.generatedImages.length > 0) {
-            const base64ImageBytes = response.generatedImages[0].image.imageBytes;
-            return `data:image/png;base64,${base64ImageBytes}`;
-        }
-        throw new Error("Nenhuma imagem foi gerada pela API.");
-    } catch (error) {
-        console.error("Error in generateImage:", error);
-        if (error instanceof Error) {
-             throw new Error(`Falha ao gerar imagem da API: ${error.message}`);
-        }
-        throw new Error("Falha ao gerar imagem da API.");
-    }
-};
-
-const generateScript = async (
+export const generateScript = async (
     storyIdea: string,
     visualStyle: string,
     duration: string,
@@ -91,7 +62,7 @@ Instruções para Thumbnail: ${thumbnailInstruction || 'Padrão: cores vibrantes
 
     if (duration === 'Vídeo') {
         const numScenes = Math.max(videoDurationMinutes * 10, 10);
-        userQuery = `Gere um roteiro para um vídeo de ${videoDurationMinutes} minutos, que deve conter aproximadamente ${numScenes} cenas, junto com o conteúdo SEO correspondente. ${baseQuery} ${seoInstructions}`;
+        userQuery = `Gere um roteiro para um vídeo. REQUISITO ESTRITO: A duração do vídeo é de ${videoDurationMinutes} minutos e o roteiro DEVE conter EXATAMENTE ${numScenes} cenas no total (10 cenas por minuto). Esta é uma regra inegociável e a principal instrução para esta tarefa. ${baseQuery} ${seoInstructions}`;
     } else {
         const durationQuery = `Duração: ${duration}.`;
         userQuery = `Gere um roteiro de filme e o conteúdo SEO correspondente. ${baseQuery} ${durationQuery} ${seoInstructions}`;
@@ -164,24 +135,21 @@ Instruções para Thumbnail: ${thumbnailInstruction || 'Padrão: cores vibrantes
     } catch (error) {
         console.error("Error in generateScript:", error);
          if (error instanceof Error) {
-             throw new Error(`Falha ao gerar ou processar o roteiro da API: ${error.message}`);
+            let userFriendlyMessage = error.message;
+            try {
+                const apiError = JSON.parse(userFriendlyMessage);
+                if (apiError?.error?.message) {
+                    if (apiError.error.code === 503 || apiError.error.status === "UNAVAILABLE") {
+                        userFriendlyMessage = "O modelo de IA está sobrecarregado. Tente novamente mais tarde.";
+                    } else {
+                        userFriendlyMessage = apiError.error.message;
+                    }
+                }
+            } catch (e) {
+                // Not a JSON error, which is fine. The original message will be used.
+            }
+            throw new Error(userFriendlyMessage);
         }
-        throw new Error("Falha ao gerar ou processar o roteiro da API.");
+        throw new Error("Ocorreu um erro desconhecido ao gerar o roteiro.");
     }
-};
-
-export const generateScriptAndImage = async (
-    storyIdea: string,
-    visualStyle: string,
-    duration: string,
-    titleInstruction: string,
-    descriptionInstruction: string,
-    thumbnailInstruction: string,
-    videoDurationMinutes: number
-) => {
-    const [imageResult, scriptResult] = await Promise.allSettled([
-        generateImage(storyIdea, visualStyle),
-        generateScript(storyIdea, visualStyle, duration, titleInstruction, descriptionInstruction, thumbnailInstruction, videoDurationMinutes)
-    ]);
-    return { imageResult, scriptResult };
 };

@@ -2,7 +2,7 @@ import React, { useState, useCallback, useEffect } from 'react';
 import { Header } from './components/Header';
 import { InputSection } from './components/InputSection';
 import { OutputSection } from './components/OutputSection';
-import { generateScriptAndImage } from './services/geminiService';
+import { generateScript } from './services/geminiService';
 import { exportScriptToPDF } from './utils/pdfExporter';
 import { HistorySidebar } from './components/HistorySidebar';
 import { ApiKeySection } from './components/ApiKeySection';
@@ -23,7 +23,6 @@ const App: React.FC = () => {
     const [thumbnailInstruction, setThumbnailInstruction] = useState('');
     const [isGenerating, setIsGenerating] = useState(false);
     const [error, setError] = useState<string | null>(null);
-    const [generatedImage, setGeneratedImage] = useState<string | null>(null);
     const [scriptData, setScriptData] = useState<ScriptData | null>(null);
     
     // State for history management
@@ -60,7 +59,6 @@ const App: React.FC = () => {
         setTitleInstruction('');
         setDescriptionInstruction('');
         setThumbnailInstruction('');
-        setGeneratedImage(null);
         setScriptData(null);
         setError(null);
         setActiveSessionId(null);
@@ -81,7 +79,6 @@ const App: React.FC = () => {
             setTitleInstruction(selected.titleInstruction);
             setDescriptionInstruction(selected.descriptionInstruction);
             setThumbnailInstruction(selected.thumbnailInstruction);
-            setGeneratedImage(selected.generatedImage);
             setScriptData(selected.scriptData);
             setActiveSessionId(selected.id);
             setError(null);
@@ -108,11 +105,10 @@ const App: React.FC = () => {
 
         setIsGenerating(true);
         setError(null);
-        setGeneratedImage(null);
         setScriptData(null);
 
         try {
-            const results = await generateScriptAndImage(
+            const newScript = await generateScript(
                 storyIdea,
                 visualStyle,
                 duration,
@@ -122,24 +118,9 @@ const App: React.FC = () => {
                 videoDurationMinutes
             );
             
-            const newImage = results.imageResult.status === 'fulfilled' ? results.imageResult.value : null;
-            const newScript = results.scriptResult.status === 'fulfilled' ? results.scriptResult.value : null;
-
-            setGeneratedImage(newImage);
             setScriptData(newScript);
-
-            if (results.imageResult.status === 'rejected') {
-                console.error("Image generation failed:", results.imageResult.reason);
-                const reason = results.imageResult.reason as Error;
-                setError(`Falha ao gerar a imagem: ${reason.message}. Verificando o roteiro...`);
-            }
-
-            if (results.scriptResult.status === 'rejected') {
-                console.error("Script generation failed:", results.scriptResult.reason);
-                const reason = results.scriptResult.reason as Error;
-                setError(`Falha ao gerar o roteiro: ${reason.message}. Tente novamente.`);
-            } else if (newScript) {
-                 if (!error || error.startsWith('Falha ao gerar a imagem')) setError(null);
+            
+            if (newScript) {
                  const newHistoryItem: HistoryItem = {
                     id: Date.now().toString(),
                     title: projectName.trim() || storyIdea.substring(0, 40) + (storyIdea.length > 40 ? '...' : ''),
@@ -152,20 +133,18 @@ const App: React.FC = () => {
                     descriptionInstruction,
                     thumbnailInstruction,
                     scriptData: newScript,
-                    generatedImage: newImage,
                  };
                  setHistory(prev => [newHistoryItem, ...prev]);
                  setActiveSessionId(newHistoryItem.id);
             }
 
-        // FIX: Explicitly typing `e` as `any` to prevent potential parsing errors that might cause the reported scope issues.
         } catch (e: any) {
             console.error(e);
-            setError(`Ocorreu um erro inesperado: ${e.message}. Verifique o console para mais detalhes.`);
+            setError(`Falha ao gerar o roteiro: ${e.message}`);
         } finally {
             setIsGenerating(false);
         }
-    }, [hasApiKey, projectName, storyIdea, visualStyle, duration, videoDurationMinutes, titleInstruction, descriptionInstruction, thumbnailInstruction, error]);
+    }, [hasApiKey, projectName, storyIdea, visualStyle, duration, videoDurationMinutes, titleInstruction, descriptionInstruction, thumbnailInstruction]);
 
     const handleExport = () => {
         if (scriptData && scriptData.cenas) {
@@ -212,7 +191,6 @@ const App: React.FC = () => {
                         <OutputSection
                             isGenerating={isGenerating}
                             error={error}
-                            generatedImage={generatedImage}
                             scriptData={scriptData}
                         />
                     </main>
