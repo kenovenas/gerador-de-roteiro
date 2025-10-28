@@ -91,8 +91,7 @@ Instruções para Thumbnail: ${thumbnailInstruction || 'Padrão: cores vibrantes
 
     if (duration === 'Vídeo') {
         const numScenes = Math.max(videoDurationMinutes * 10, 10);
-        const durationQuery = `Duração: ${videoDurationMinutes} minutos.`;
-        userQuery = `Gere um roteiro com aproximadamente ${numScenes} cenas para um vídeo de ${videoDurationMinutes} minutos e o conteúdo SEO correspondente. ${baseQuery} ${durationQuery} ${seoInstructions}`;
+        userQuery = `Gere um roteiro para um vídeo de ${videoDurationMinutes} minutos, que deve conter aproximadamente ${numScenes} cenas, junto com o conteúdo SEO correspondente. ${baseQuery} ${seoInstructions}`;
     } else {
         const durationQuery = `Duração: ${duration}.`;
         userQuery = `Gere um roteiro de filme e o conteúdo SEO correspondente. ${baseQuery} ${durationQuery} ${seoInstructions}`;
