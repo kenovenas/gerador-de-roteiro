@@ -29,7 +29,7 @@ export const InputSection: React.FC<InputSectionProps> = ({
     videoDurationMinutes, setVideoDurationMinutes, titleInstruction, setTitleInstruction, descriptionInstruction, setDescriptionInstruction,
     thumbnailInstruction, setThumbnailInstruction, onGenerate, isGenerating, isResultReady, onExport
 }) => {
-    const visualStyles = ["Cinematográfico", "Hiper-realista", "Ultra Realista em 8k", "Longa animado (Estilo Pixar)", "CGI Ultra-realista", "Estilo Cyberpunk", "Fantasia Épica (Senhor dos Anéis)", "Noir Clássico", "Terror Cósmico (Lovecraft)"];
+    const visualStyles = ["Cinematográfico", "Hiper-realista", "Ultra Realista em 8k", "Longa animado (Estilo Pixar)", "Animação 2D (Estilo Disney)", "Animação Infantil (Estilo Dora Aventureira)", "CGI Ultra-realista", "Estilo Cyberpunk", "Fantasia Épica (Senhor dos Anéis)", "Noir Clássico", "Terror Cósmico (Lovecraft)"];
     const durations = ["Curta", "Média", "Longa", "Vídeo"];
 
     return (
