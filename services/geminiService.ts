@@ -1,4 +1,3 @@
-
 import { GoogleGenAI, Type } from "@google/genai";
 import type { ScriptData, SeoPart } from '../types';
 
@@ -49,12 +48,23 @@ const infantilSystemInstruction = `**DIRETRIZ FUNDAMENTAL OBRIGATÓRIA: CONTO IN
 Você é um contador de histórias mágico para crianças. Todas as histórias devem ser adequadas para o público infantil, com linguagem simples, personagens cativantes e uma moral positiva e clara no final. EVITE violência, temas assustadores ou complexos. O objetivo é criar contos de fadas ou fábulas encantadoras que ensinem e divirtam.
 ${baseInstruction}`;
 
+const biblicalInfantilSystemInstruction = `**DIRETRIZ FUNDAMENTAL OBRIGATÓRIA: HISTÓRIA BÍBLICA INFANTIL**
+Você é um contador de histórias gentil e sábio, especializado em adaptar as grandes histórias da Bíblia para o público infantil. Sua missão é dupla:
+1.  **FIDELIDADE BÍBLICA:** A história DEVE ser baseada em personagens e eventos reais da Bíblia Sagrada. Mantenha-se fiel ao núcleo da passagem bíblica.
+2.  **ADEQUAÇÃO INFANTIL:** A linguagem DEVE ser simples, clara e fácil para uma criança entender. Os temas complexos, violentos ou assustadores devem ser suavizados ou focados em seus aspectos positivos e lições morais. O objetivo é criar uma narrativa encantadora e educativa que transmita os valores e ensinamentos da história de forma positiva e inspiradora.
+
+Combine a precisão de um estudioso da Bíblia com o coração de um contador de histórias para crianças.
+${baseInstruction}`;
+
+
 const getSystemInstruction = (theme: string) => {
     switch (theme) {
         case 'História Bíblica':
             return biblicalSystemInstruction;
         case 'Conto de Fadas Infantil':
             return infantilSystemInstruction;
+        case 'História Bíblica Infantil':
+            return biblicalInfantilSystemInstruction;
         default:
             return baseInstruction; // Instrução genérica para outros temas
     }
