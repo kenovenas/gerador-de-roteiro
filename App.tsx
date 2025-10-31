@@ -1,3 +1,4 @@
+
 import React, { useState, useCallback, useEffect } from 'react';
 import { Header } from './components/Header';
 import { InputSection } from './components/InputSection';
@@ -15,6 +16,7 @@ const App: React.FC = () => {
     // State for the active session
     const [projectName, setProjectName] = useState('');
     const [storyIdea, setStoryIdea] = useState('');
+    const [theme, setTheme] = useState('História Bíblica');
     const [visualStyle, setVisualStyle] = useState('Cinematográfico');
     const [duration, setDuration] = useState('Curta');
     const [videoDurationMinutes, setVideoDurationMinutes] = useState(10);
@@ -54,6 +56,7 @@ const App: React.FC = () => {
     const resetActiveState = () => {
         setProjectName('');
         setStoryIdea('');
+        setTheme('História Bíblica');
         setVisualStyle('Cinematográfico');
         setDuration('Curta');
         setVideoDurationMinutes(10);
@@ -74,6 +77,7 @@ const App: React.FC = () => {
         if (selected) {
             setProjectName(selected.projectName || '');
             setStoryIdea(selected.storyIdea);
+            setTheme(selected.theme || 'História Bíblica');
             setVisualStyle(selected.visualStyle);
             setDuration(selected.duration);
             setVideoDurationMinutes(selected.videoDurationMinutes || 10);
@@ -111,6 +115,7 @@ const App: React.FC = () => {
         try {
             const newScript = await generateScript(
                 storyIdea,
+                theme,
                 visualStyle,
                 duration,
                 titleInstruction,
@@ -127,6 +132,7 @@ const App: React.FC = () => {
                     title: projectName.trim() || storyIdea.substring(0, 40) + (storyIdea.length > 40 ? '...' : ''),
                     projectName,
                     storyIdea,
+                    theme,
                     visualStyle,
                     duration,
                     videoDurationMinutes,
@@ -145,7 +151,7 @@ const App: React.FC = () => {
         } finally {
             setIsGenerating(false);
         }
-    }, [hasApiKey, projectName, storyIdea, visualStyle, duration, videoDurationMinutes, titleInstruction, descriptionInstruction, thumbnailInstruction]);
+    }, [hasApiKey, projectName, storyIdea, theme, visualStyle, duration, videoDurationMinutes, titleInstruction, descriptionInstruction, thumbnailInstruction]);
 
     const handleRegenerateSeo = useCallback(async (part: SeoPart, instructions: string) => {
         if (!scriptData) return;
@@ -207,6 +213,8 @@ const App: React.FC = () => {
                             setProjectName={setProjectName}
                             storyIdea={storyIdea}
                             setStoryIdea={setStoryIdea}
+                            theme={theme}
+                            setTheme={setTheme}
                             visualStyle={visualStyle}
                             setVisualStyle={setVisualStyle}
                             duration={duration}

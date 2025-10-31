@@ -1,3 +1,4 @@
+
 import { GoogleGenAI, Type } from "@google/genai";
 import type { ScriptData, SeoPart } from '../types';
 
@@ -10,10 +11,7 @@ const getAiClient = () => {
     return new GoogleGenAI({ apiKey });
 };
 
-const fullSystemInstruction = `**DIRETRIZ FUNDAMENTAL OBRIGATÓRIA: BASE BÍBLICA**
-Todas as histórias, personagens e eventos gerados DEVEM ser estritamente baseados em passagens da Bíblia Sagrada. A fidelidade ao texto bíblico é a prioridade máxima. É expressamente PROIBIDO inventar eventos, diálogos, personagens ou elementos fantásticos que não tenham base direta nas Escrituras. O objetivo é dramatizar as histórias bíblicas, não criar ficção nova.
-
-Você é um roteirista mestre e especialista em marketing para YouTube. Sua tarefa é gerar um pacote completo de conteúdo. A saída DEVE ser um único objeto JSON, e NADA MAIS.
+const baseInstruction = `Você é um roteirista mestre e especialista em marketing para YouTube. Sua tarefa é gerar um pacote completo de conteúdo. A saída DEVE ser um único objeto JSON, e NADA MAIS.
 
 **REGRA DE OURO DA CONSISTÊNCIA (A MAIS IMPORTANTE):**
 Para garantir que os personagens principais tenham uma aparência consistente, a descrição visual detalhada (o "DNA do personagem") criada na seção "personagens" DEVE SER OBRIGATORIAMENTE INCLUÍDA em CADA "promptImagem" e "promptVideo" em que o personagem aparecer. Não pode haver exceções. A falha em incluir esta descrição exata resultará em um roteiro inconsistente e inútil.
@@ -42,7 +40,25 @@ REGRAS ESPECIAIS PARA ROTEIROS DE VÍDEO:
 1.  É ESSENCIAL que o roteiro contenha diálogos e falas consistentes do início ao fim.
 2.  AS CENAS FINAIS (últimas 2 ou 3) DEVEM OBRIGATORIAMENTE incluir uma chamada para ação (call to action), pedindo ao público para se inscrever, deixar 'like' e ativar notificações.
 3.  **CONTAGEM DE CENAS É A PRIORIDADE MÁXIMA E INEGOCIÁVEL:** Se for solicitado um roteiro de vídeo, a instrução sobre o número de cenas (10 por minuto) TEM PRECEDÊNCIA ABSOLUTA sobre qualquer outra diretriz de estilo ou conteúdo. O número de objetos no array 'cenas' DEVE ser exatamente o número solicitado.`;
-    
+
+const biblicalSystemInstruction = `**DIRETRIZ FUNDAMENTAL OBRIGATÓRIA: BASE BÍBLICA**
+Todas as histórias, personagens e eventos gerados DEVEM ser estritamente baseados em passagens da Bíblia Sagrada. A fidelidade ao texto bíblico é a prioridade máxima. É expressamente PROIBIDO inventar eventos, diálogos, personagens ou elementos fantásticos que não tenham base direta nas Escrituras. O objetivo é dramatizar as histórias bíblicas, não criar ficção nova.
+${baseInstruction}`;
+
+const infantilSystemInstruction = `**DIRETRIZ FUNDAMENTAL OBRIGATÓRIA: CONTO INFANTIL**
+Você é um contador de histórias mágico para crianças. Todas as histórias devem ser adequadas para o público infantil, com linguagem simples, personagens cativantes e uma moral positiva e clara no final. EVITE violência, temas assustadores ou complexos. O objetivo é criar contos de fadas ou fábulas encantadoras que ensinem e divirtam.
+${baseInstruction}`;
+
+const getSystemInstruction = (theme: string) => {
+    switch (theme) {
+        case 'História Bíblica':
+            return biblicalSystemInstruction;
+        case 'Conto de Fadas Infantil':
+            return infantilSystemInstruction;
+        default:
+            return baseInstruction; // Instrução genérica para outros temas
+    }
+};
 
 const handleApiError = (error: unknown) => {
     console.error("Error calling Gemini API:", error);
@@ -70,6 +86,7 @@ const handleApiError = (error: unknown) => {
 
 export const generateScript = async (
     storyIdea: string,
+    theme: string,
     visualStyle: string,
     duration: string,
     titleInstruction: string,
@@ -80,7 +97,7 @@ export const generateScript = async (
     const ai = getAiClient();
     
     let userQuery: string;
-    const baseQuery = `Premissa da história: ${storyIdea}. Estilo visual: ${visualStyle}.`;
+    const baseQuery = `Premissa da história: ${storyIdea}. Tema: ${theme}. Estilo visual: ${visualStyle}.`;
     const seoInstructions = `
 Instruções para Títulos: ${titleInstruction || 'Padrão: gerar curiosidade e ser impactante.'}
 Instruções para Descrição: ${descriptionInstruction || 'Padrão: resumir a história e adicionar CTA.'}
@@ -147,11 +164,12 @@ Instruções para Thumbnail: ${thumbnailInstruction || 'Padrão: cores vibrantes
     };
     
     try {
+        const systemInstruction = getSystemInstruction(theme);
         const response = await ai.models.generateContent({
             model: "gemini-2.5-pro",
             contents: userQuery,
             config: {
-                systemInstruction: fullSystemInstruction,
+                systemInstruction: systemInstruction,
                 responseMimeType: "application/json",
                 responseSchema: responseSchema,
             },

@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Spinner } from './Spinner';
 
@@ -6,6 +7,8 @@ interface InputSectionProps {
     setProjectName: (value: string) => void;
     storyIdea: string;
     setStoryIdea: (value: string) => void;
+    theme: string;
+    setTheme: (value: string) => void;
     visualStyle: string;
     setVisualStyle: (value: string) => void;
     duration: string;
@@ -25,17 +28,18 @@ interface InputSectionProps {
 }
 
 export const InputSection: React.FC<InputSectionProps> = ({
-    projectName, setProjectName, storyIdea, setStoryIdea, visualStyle, setVisualStyle, duration, setDuration,
+    projectName, setProjectName, storyIdea, setStoryIdea, theme, setTheme, visualStyle, setVisualStyle, duration, setDuration,
     videoDurationMinutes, setVideoDurationMinutes, titleInstruction, setTitleInstruction, descriptionInstruction, setDescriptionInstruction,
     thumbnailInstruction, setThumbnailInstruction, onGenerate, isGenerating, isResultReady, onExport
 }) => {
+    const themes = ["História Bíblica", "Conto de Fadas Infantil", "Ficção Científica", "Documentário Explicativo", "Comédia Romântica", "Terror/Suspense"];
     const visualStyles = ["Cinematográfico", "Hiper-realista", "Ultra Realista em 8k", "Longa animado (Estilo Pixar)", "Animação 2D (Estilo Disney)", "Animação Infantil (Estilo Dora Aventureira)", "CGI Ultra-realista", "Estilo Cyberpunk", "Fantasia Épica (Senhor dos Anéis)", "Noir Clássico", "Terror Cósmico (Lovecraft)"];
     const durations = ["Curta", "Média", "Longa", "Vídeo"];
 
     return (
         <section className="bg-purple-900/50 p-6 md:p-8 rounded-2xl border border-purple-800 shadow-lg">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                 <div className="md:col-span-2">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                 <div className="lg:col-span-3">
                     <label htmlFor="project-name" className="block text-sm font-medium text-purple-300 mb-2">Nome do Projeto</label>
                     <input
                         id="project-name"
@@ -47,17 +51,29 @@ export const InputSection: React.FC<InputSectionProps> = ({
                         disabled={isGenerating}
                     />
                 </div>
-                <div className="md:col-span-2">
+                <div className="lg:col-span-3">
                     <label htmlFor="story-idea" className="block text-sm font-medium text-purple-300 mb-2">Sua Ideia</label>
                     <textarea
                         id="story-idea"
                         rows={6}
                         className="w-full bg-slate-800 border border-purple-700 rounded-lg p-3 text-slate-200 focus:ring-2 focus:ring-pink-500 focus:border-pink-500 transition"
-                        placeholder="Descreva a passagem ou história bíblica que você quer transformar em roteiro (ex: A história de Davi e Golias, A parábola do filho pródigo)..."
+                        placeholder="Descreva a ideia para sua história (ex: A história de Davi e Golias, Uma princesa que salva um dragão, Uma viagem no tempo para o futuro...)"
                         value={storyIdea}
                         onChange={(e) => setStoryIdea(e.target.value)}
                         disabled={isGenerating}
                     />
+                </div>
+                <div>
+                    <label htmlFor="theme" className="block text-sm font-medium text-purple-300 mb-2">Tema do Roteiro</label>
+                    <select
+                        id="theme"
+                        className="w-full bg-slate-800 border border-purple-700 rounded-lg p-3 text-slate-200 focus:ring-2 focus:ring-pink-500 focus:border-pink-500 transition"
+                        value={theme}
+                        onChange={(e) => setTheme(e.target.value)}
+                        disabled={isGenerating}
+                    >
+                        {themes.map(t => <option key={t} value={t}>{t}</option>)}
+                    </select>
                 </div>
                 <div>
                     <label htmlFor="visual-style" className="block text-sm font-medium text-purple-300 mb-2">Estilo Visual</label>
@@ -85,7 +101,7 @@ export const InputSection: React.FC<InputSectionProps> = ({
                 </div>
 
                 {duration === 'Vídeo' && (
-                     <div className="md:col-span-2 space-y-2">
+                     <div className="lg:col-span-3 space-y-2">
                         <div>
                             <label htmlFor="video-duration-minutes" className="block text-sm font-medium text-purple-300 mb-2">Duração do Vídeo (minutos)</label>
                             <input
@@ -107,7 +123,7 @@ export const InputSection: React.FC<InputSectionProps> = ({
                     </div>
                 )}
 
-                <div className="md:col-span-2 space-y-4">
+                <div className="lg:col-span-3 space-y-4">
                      <div>
                         <label htmlFor="title-instruction" className="block text-sm font-medium text-purple-300 mb-2">Instruções para Títulos</label>
                         <textarea

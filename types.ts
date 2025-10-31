@@ -1,3 +1,4 @@
+
 export interface Character {
   nome: string;
   descricao: string;
@@ -35,6 +36,7 @@ export interface HistoryItem {
   title: string;
   projectName: string;
   storyIdea: string;
+  theme: string;
   visualStyle: string;
   duration: string;
   videoDurationMinutes: number;
